@@ -11,6 +11,23 @@
             android:entries="@array/resolution_names"
             android:entryValues="@array/resolution_values"
             android:defaultValue="1280x720" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="checkbox_use_custom_resolution"
+            android:summary="Use Custom Resolution"
+            android:title="Use Custom Resolution" />
+        <EditTextPreference
+            android:key="custom_resolution_width"
+            android:dependency="checkbox_use_custom_resolution"
+            android:title="Custom Resolution Width"
+            android:summary=""
+            android:defaultValue="1920"/>
+        <EditTextPreference
+            android:key="custom_resolution_height"
+            android:dependency="checkbox_use_custom_resolution"
+            android:title="Custom Resolution Height"
+            android:summary=""
+            android:defaultValue="864"/>
         <ListPreference
             android:key="list_fps"
             android:title="@string/title_fps_list"

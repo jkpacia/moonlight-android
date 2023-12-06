@@ -59,6 +59,7 @@ public class PreferenceConfiguration {
     private static final String GAMEPAD_TOUCHPAD_AS_MOUSE_PREF_STRING = "checkbox_gamepad_touchpad_as_mouse";
     private static final String GAMEPAD_MOTION_SENSORS_PREF_STRING = "checkbox_gamepad_motion_sensors";
     private static final String GAMEPAD_MOTION_FALLBACK_PREF_STRING = "checkbox_gamepad_motion_fallback";
+    private static final String USE_CUSTOM_RESOLUTION = "checkbox_use_custom_resolution";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -96,6 +97,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE = false;
     private static final boolean DEFAULT_GAMEPAD_MOTION_SENSORS = true;
     private static final boolean DEFAULT_GAMEPAD_MOTION_FALLBACK = false;
+    private static final boolean DEFAULT_CUSTOM_RESOLUTION_FALLBACK = false;
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;
     public static final int FRAME_PACING_BALANCED = 1;
@@ -109,6 +111,10 @@ public class PreferenceConfiguration {
     public static final String RES_1440P = "2560x1440";
     public static final String RES_4K = "3840x2160";
     public static final String RES_NATIVE = "Native";
+    static final String DEFAULT_CUS_RES_WIDTH = "1920";
+    static final String DEFAULT_CUS_RES_HEIGHT = "1080";
+    static final String CUS_RES_WIDTH = "custom_resolution_width";
+    static final String CUS_RES_HEIGHT = "custom_resolution_height";
 
     public int width, height, fps;
     public int bitrate;
@@ -140,6 +146,8 @@ public class PreferenceConfiguration {
     public boolean gamepadMotionSensors;
     public boolean gamepadTouchpadAsMouse;
     public boolean gamepadMotionSensorsFallbackToDevice;
+
+    public boolean customResolution;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -221,6 +229,10 @@ public class PreferenceConfiguration {
 
     private static int getHeightFromResolutionString(String resString) {
         return Integer.parseInt(resString.split("x")[1]);
+    }
+
+    private static int getIntValueResolutionString(String resString) {
+        return Integer.parseInt(resString);
     }
 
     private static String getResolutionString(int width, int height) {
@@ -484,17 +496,28 @@ public class PreferenceConfiguration {
         }
         else {
             // Use the new preference location
-            String resStr = prefs.getString(RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
+            boolean customRes = prefs.getBoolean(USE_CUSTOM_RESOLUTION, PreferenceConfiguration.DEFAULT_CUSTOM_RESOLUTION_FALLBACK);
 
-            // Convert legacy resolution strings to the new style
-            if (!resStr.contains("x")) {
-                resStr = PreferenceConfiguration.convertFromLegacyResolutionString(resStr);
-                prefs.edit().putString(RESOLUTION_PREF_STRING, resStr).apply();
+            if (customRes) {
+                String customWidth = prefs.getString(CUS_RES_WIDTH, PreferenceConfiguration.DEFAULT_CUS_RES_WIDTH);
+                String customHeight = prefs.getString(CUS_RES_HEIGHT, PreferenceConfiguration.DEFAULT_CUS_RES_HEIGHT);
+                config.width = PreferenceConfiguration.getIntValueResolutionString(customWidth);
+                config.height = PreferenceConfiguration.getIntValueResolutionString(customHeight);
+
+            } else {
+                String resStr = prefs.getString(RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
+
+                // Convert legacy resolution strings to the new style
+                if (!resStr.contains("x")) {
+                    resStr = PreferenceConfiguration.convertFromLegacyResolutionString(resStr);
+                    prefs.edit().putString(RESOLUTION_PREF_STRING, resStr).apply();
+                }
+
+                config.width = PreferenceConfiguration.getWidthFromResolutionString(resStr);
+                config.height = PreferenceConfiguration.getHeightFromResolutionString(resStr);
             }
-
-            config.width = PreferenceConfiguration.getWidthFromResolutionString(resStr);
-            config.height = PreferenceConfiguration.getHeightFromResolutionString(resStr);
             config.fps = Integer.parseInt(prefs.getString(FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS));
+
         }
 
         if (!prefs.contains(SMALL_ICONS_PREF_STRING)) {
@@ -567,6 +590,7 @@ public class PreferenceConfiguration {
         config.gamepadTouchpadAsMouse = prefs.getBoolean(GAMEPAD_TOUCHPAD_AS_MOUSE_PREF_STRING, DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE);
         config.gamepadMotionSensors = prefs.getBoolean(GAMEPAD_MOTION_SENSORS_PREF_STRING, DEFAULT_GAMEPAD_MOTION_SENSORS);
         config.gamepadMotionSensorsFallbackToDevice = prefs.getBoolean(GAMEPAD_MOTION_FALLBACK_PREF_STRING, DEFAULT_GAMEPAD_MOTION_FALLBACK);
+        config.customResolution = prefs.getBoolean(USE_CUSTOM_RESOLUTION, DEFAULT_CUSTOM_RESOLUTION_FALLBACK);
 
         return config;
     }
